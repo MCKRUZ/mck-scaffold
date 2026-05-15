@@ -13,6 +13,7 @@ version: 0.7.0
 ## Pipeline overview
 
 ```
+Step 0: research-refresh staleness check (NEW in v0.11.0)
 Step 1: detect project context
 Step 2: load interview definition (questions.md + routing.md)
 Step 3: run interview (Q1–Q8 with pruning)
@@ -21,11 +22,48 @@ Step 5: produce decision summary
 Step 6: confirm or iterate
 ─────────── confirmation point ───────────
 Step 7: execute scaffolding (compose + write files)
-Step 8: trigger upstream installs
+Step 8: trigger upstream installs (auto, not optional — Phase 11 contract)
 Step 9: final summary + manual-steps callout
 ```
 
-Steps 1–6 do not write to the target project. Steps 7–8 do.
+Steps 0–6 do not write to the target project. Step 0 may write to mck-scaffold itself if user opts in to a research refresh. Steps 7–8 write to the target project.
+
+---
+
+## Step 0 — research-refresh staleness check
+
+> **New in v0.11.0.** Surface upstream-ecosystem drift before routing decisions get made against a stale catalog. The dogfood on `consultant-helper` (2026-05-15) immediately surfaced Spec-Kit drift less than 30 days after the catalog was written — staleness is real and routing against stale data produces broken installs.
+
+Read `research/last-run.json` from the plugin root. Extract `timestamp_iso` and compute `days_since` against today.
+
+**Render an appropriate prompt based on staleness:**
+
+| Staleness | Prompt tone |
+|---|---|
+| < 30 days | Brief, skip-by-default: "Catalog refreshed {days_since} days ago — fresh. Skipping refresh by default. Pass `--refresh` to override." |
+| 30–90 days | Neutral: "Catalog refreshed {days_since} days ago. Refresh before this scaffold? It catches upstream drift (~5-10 min, 4 parallel research streams)." |
+| > 90 days | Strong: "Catalog refreshed {days_since} days ago — **drift is likely.** Strongly recommended to refresh before this scaffold. Skip only if you've verified the framework you expect to route to hasn't shifted." |
+
+Use `AskUserQuestion` with options sized to the staleness tone:
+
+- `< 30 days` → ["Skip refresh, proceed to interview" (default), "Force refresh anyway"]
+- `30-90 days` → ["Refresh first (recommended)", "Skip refresh — proceed to interview"]
+- `> 90 days` → ["Refresh first (strongly recommended)" (default), "Skip — proceed without refresh"]
+
+**If user opts to refresh:**
+
+Invoke the `research-refresh` skill conversationally. It will run its own pipeline (4 parallel research streams → diff → per-section confirm → apply). When it completes, return here and proceed to Step 1.
+
+**If user opts to skip:**
+
+Proceed directly to Step 1. The current catalog state in `research/streams/*.md` and `interview/routing.md` will drive the routing.
+
+**Argument handling at Step 0:**
+
+- `--refresh` — force the refresh prompt regardless of staleness (useful for "I know there was a release yesterday, re-check anyway")
+- `--no-refresh` — skip Step 0 entirely without prompting (useful for scripted / CI invocations)
+
+If neither flag is passed, follow the staleness-tone logic above.
 
 ---
 
@@ -223,22 +261,25 @@ Read the `install_commands` resolved in Step 4. There are two command types:
 
 ### 8a — bash-runnable commands
 
-Examples: `specify init {{project_name}} --ai claude`, `npx musubi-sdd@latest init`, `uvx shotgun plan "<short description>"`, `openspec init`.
+**These are auto-executed.** Step 8a is not optional. After Step 6 confirmation, every bash-runnable install in the resolved preset's row of `interview/routing.md` runs via the `Bash` tool. Do not defer to "user runs this later" — the whole point of the scaffolder is that it scaffolds.
 
-For each:
+Reference the canonical install commands in `interview/routing.md` § "Meta-installer triggers per preset". For each:
 
-1. **Conflict pre-check.** Detect existing markers:
+1. **Platform detection.** Check `$IsWindows` (PowerShell) or `uname -s` (bash). Some preset install commands branch on this (e.g., Spec-Kit needs `--script ps` on Windows + UTF-8 env vars).
+2. **Environment setup.** For Windows + Python-based upstream tools (specify-cli, musubi-sdd if Python-based, etc.), set `$env:PYTHONIOENCODING = "utf-8"` and `$env:PYTHONUTF8 = "1"` BEFORE invocation. Without this, Spec-Kit's banner crashes with `UnicodeEncodeError` on the default `cp1252` codepage.
+3. **Conflict pre-check.** Detect existing markers:
    - Spec-Kit: `.specify/` already exists → conflict
    - MUSUBI: `docs/constitution.md` with MUSUBI banner + `.claude/skills/@orchestrator` → conflict
    - OpenSpec: `openspec/` already exists → conflict
-2. **If conflict found**, AskUserQuestion:
-   - **Install alongside** — proceed; the upstream tool will likely fail or warn, surface its output
+4. **If conflict found**, AskUserQuestion:
+   - **Install alongside** — proceed; the upstream tool's own `--force` handles the merge (most modern installers support this)
    - **Skip this install** — note in summary, continue
    - **Abort entire scaffold** — stop everything (files already written remain; document this in summary)
-   - **Default: skip this install**
-3. **No conflict** → run the command via `Bash` tool with output captured.
-4. For Shotgun: prompt user for the `"<short description>"` argument before running — it's free-text.
-5. **Verify success** — check expected post-install markers exist (`.specify/`, `openspec/`, etc.). If markers missing, log the failure and continue with the next install. Don't abort the whole run for a partial install.
+   - **Default: install alongside with `--force`** (auto-install is the explicit Phase 11 contract; only escalate to user prompt if conflict detection finds something genuinely ambiguous)
+5. **No conflict** → run the command via `Bash` tool with output captured. Apply long timeouts (180–600 seconds) — first-time `uvx` invocations download from GitHub which can be slow.
+6. For Shotgun: prompt the user for the `"<short description>"` argument BEFORE the install runs — it's free-text and required.
+7. **Verify success** — check expected post-install markers exist (`.specify/`, `openspec/`, `docs/constitution.md`). If markers missing, capture stderr and surface to user. Continue with the next install — don't abort the whole run for a partial failure.
+8. **Surface Spec-Kit's `.claude/` security advisory** — if Spec-Kit ran, its post-install output recommends adding parts of `.claude/` to `.gitignore` to prevent agent credential leakage. Append this note to the final summary (Step 9) so the user sees it.
 
 ### 8b — slash-command installers
 

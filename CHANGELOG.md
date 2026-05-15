@@ -2,6 +2,71 @@
 
 All notable changes to mck-scaffold will be recorded here.
 
+## [0.11.0] — 2026-05-15 — Phase 11 (auto-install) + Phase 12 (research-refresh pipeline)
+
+### Phase 11 — Auto-install enforcement + Spec-Kit drift fixes
+
+Triggered by the consultant-helper dogfood, which surfaced that I'd deferred Spec-Kit's `specify init` to "you run it manually" — the whole point of the scaffolder is that it scaffolds. The dogfood also caught Spec-Kit drift since the Wasowski Apr-2026 baseline.
+
+#### Changed — `interview/routing.md`
+- "Meta-installer triggers per preset" restructured from inline table to per-preset code blocks with Windows / Unix variants
+- **L1-spec-kit install command modernized:**
+  - Windows: `$env:PYTHONIOENCODING="utf-8"; $env:PYTHONUTF8="1"; uvx --from git+https://github.com/github/spec-kit.git specify init . --integration claude --force --script ps`
+  - Unix: `uvx --from git+https://github.com/github/spec-kit.git specify init . --integration claude --force --script sh`
+  - `--ai` deprecated → `--integration`
+  - `--force` required to skip "directory not empty" confirm
+  - `PYTHONIOENCODING=utf-8` + `PYTHONUTF8=1` required on Windows or Spec-Kit's banner crashes on `cp1252`
+- Drift notes section added documenting verified-2026-05-15 deltas
+
+#### Changed — `skills/init/SKILL.md` Step 8a
+- **"Auto-execute"** is now the explicit contract — not optional, not "user runs this later"
+- Added platform detection step
+- Added env-var setup step (Windows + Python upstream tools)
+- Default conflict behavior changed to "install alongside with `--force`" (was "skip"); explicit prompt only on genuinely ambiguous conflicts
+- Added Step 8 final substep: surface Spec-Kit's `.claude/` credentials gitignore advisory in the final summary
+
+#### Changed — `templates/methodologies/L1-spec-kit/CLAUDE.append.md`
+- All slash commands renamed dot → hyphen (`/speckit.constitution` → `/speckit-constitution`, etc.)
+- "Skills live in `.claude/skills/`" replaces "Commands live in `.claude/commands/`"
+- Enhancement skills section added: `/speckit-clarify`, `/speckit-analyze`, `/speckit-checklist`
+- Security advisory added: `.claude/` credentials gitignore reminder
+
+#### Changed — `templates/methodologies/L1-spec-kit/README.md`
+- Install commands platform-split (Windows / Unix code blocks)
+- "Drift notes (verified 2026-05-15)" table added
+- Security advisory added in honest-caveats list
+
+### Phase 12 — Research-refresh pipeline
+
+A pre-interview check that detects how stale `research/last-run.json` is and offers to re-run the 4-stream research pipeline (GitHub / Reddit / YouTube / web-blogs) before routing decisions get made against potentially-stale catalog data. Findings live in the shared `mck-scaffold` repo (committed) so refreshes are essentially contributions to the plugin.
+
+#### Added — `research/` directory
+
+- `research/README.md` — what's here, how a refresh works, staleness thresholds, v0.11.0 vs v0.11.1 scope
+- `research/last-run.json` — timestamp + summary + `mck_scaffold_version_at_run` + `streams_completed` + `catalog_frameworks_count` + `known_drifts_since_last_run`. Initial baseline = 2026-05-15.
+- `research/findings.md` — consolidated narrative synthesis of current ecosystem state. References the 4 stream files.
+- `research/changelog.md` — deltas over time. Most recent first. Initial entry covers the 2026-05-15 baseline + Spec-Kit drift fixes from Phase 11.
+- `research/streams/github-landscape.md` — structured framework facts table (name / family / stars / install / status / drift). 15 frameworks tracked.
+- `research/streams/reddit-signal.md` — practitioner consensus tactics + failure patterns. Flags primary Reddit MCP as degraded at baseline; next refresh should re-attempt direct access.
+- `research/streams/youtube-tutorials.md` — high-credibility creator list + consensus tactics + anti-patterns. Flags transcript MCP as unavailable at baseline.
+- `research/streams/web-blogs.md` — Anthropic engineering canon + practitioner essays + production case studies + critical pieces + SDD-specific anchors.
+
+#### Added — `skills/research-refresh/SKILL.md`
+
+9-step orchestration: read current state → confirm cost → launch 4 parallel `Agent` calls → consolidate → diff against current streams → per-section confirm → apply confirmed changes → update timestamps & changelog → offer git commit. Per-section confirm is the v0.11.0 default; `--auto-apply` skips review with warning (v0.11.1 will auto-apply with diff-format-locked machine parsing).
+
+#### Changed — `skills/init/SKILL.md` (new Step 0)
+
+Pre-interview staleness check. Reads `research/last-run.json` and renders prompt sized to staleness (< 30 days → skip-default; 30–90 days → neutral; > 90 days → refresh-default). If user opts in, invokes `research-refresh` skill, then returns to Step 1. Arguments: `--refresh` (force) and `--no-refresh` (skip without prompting).
+
+### Design notes
+
+- **Shared-repo store for research findings** is a deliberate choice (over local-only) so refreshes benefit all users / future machines. Refresh = commit = push = everyone catches up.
+- **Per-section confirm at Step 6 of refresh** preserves user control. Auto-apply is opt-in.
+- **Drift is now first-class.** `last-run.json` carries `known_drifts_since_last_run` so the next refresh starts with a hit-list. The 2026-05-15 baseline ships with the Spec-Kit drifts pre-populated as a worked example.
+- **Phase 12.1 scope (deferred):** machine-parseable diff format that lets `--auto-apply` actually touch files rather than just producing human-readable output. Requires locking the diff schema first.
+- **Phase 13 scope (deferred):** scheduled background refresh via a hook or cron-equivalent. Monthly cadence default.
+
 ## [0.10.1] — 2026-05-15 — GitHub repo wiring
 
 ### Added

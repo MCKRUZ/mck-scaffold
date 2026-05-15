@@ -1,0 +1,25 @@
+{
+  "timestamp_iso": "2026-05-15T00:00:00Z",
+  "timestamp_human": "2026-05-15",
+  "mck_scaffold_version_at_run": "0.11.0",
+  "run_kind": "baseline",
+  "streams_completed": [
+    "github-landscape",
+    "reddit-signal",
+    "youtube-tutorials",
+    "web-blogs"
+  ],
+  "summary": "Initial baseline research, captured from the conversation that built mck-scaffold v0.1.0 through v0.10.1. Synthesized into Wasowski-2026 + Piskala-2026 framework. Dogfood run on consultant-helper (2026-05-15) immediately surfaced Spec-Kit drift (--ai deprecated, slash commands dot->hyphen, commands moved to skills); these findings are captured in streams/github-landscape.md and reflected in routing.md / L1-spec-kit templates.",
+  "catalog_frameworks_count": {
+    "L1": 11,
+    "L2": 3,
+    "L3": 2
+  },
+  "known_drifts_since_last_run": [
+    {
+      "framework": "Spec-Kit",
+      "kind": "syntax",
+      "detail": "--ai deprecated; use --integration. Slash commands /speckit.X -> /speckit-X. Commands moved from .claude/commands/ to .claude/skills/. Auto-git-init now default."
+    }
+  ]
+}

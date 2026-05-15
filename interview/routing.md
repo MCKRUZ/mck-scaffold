@@ -56,17 +56,71 @@ Files are merged with shared as the base; methodology fragments append; stack fr
 
 ## Meta-installer triggers per preset
 
-Captured here in stub form; full implementation in Phase 7.
+Captured here in canonical form. Step 8 of `init/SKILL.md` **auto-executes** these — they are not optional manual steps for the user.
 
-| Preset | Install command |
-|---|---|
-| `L1-lean` | (none) |
-| `L1-spec-kit` | `specify init <project-name> --ai claude` |
-| `L1-superpowers` | `/plugin install superpowers@claude-plugins-official` |
-| `L2-musubi` | `npx musubi-sdd@latest init` |
-| `L2-openspec-brownfield` | `uvx shotgun plan "<short description>"` then `openspec init` |
-| `L2-csdd-security` (overlay) | (no install — templates only) |
-| `L3-watch` (overlay) | (no install — informational doc only) |
+### L1-lean
+
+(none)
+
+### L1-spec-kit
+
+Windows (auto-detected by Step 8 when `$IsWindows` or equivalent):
+
+```powershell
+$env:PYTHONIOENCODING = "utf-8"
+$env:PYTHONUTF8 = "1"
+uvx --from git+https://github.com/github/spec-kit.git specify init . --integration claude --force --script ps
+```
+
+macOS / Linux:
+
+```bash
+uvx --from git+https://github.com/github/spec-kit.git specify init . --integration claude --force --script sh
+```
+
+**Drift notes (verified 2026-05-15 via dogfood):**
+- `--ai` is deprecated in current Spec-Kit. Use `--integration`.
+- `--force` is required to skip the "directory not empty" confirm prompt when mck-scaffold has already scaffolded the base CLAUDE.md / AGENTS.md / settings.json.
+- `--script ps` (Windows) / `--script sh` (Unix) sets the shell-script variant.
+- `PYTHONIOENCODING=utf-8` + `PYTHONUTF8=1` on Windows fixes a `cp1252` `UnicodeEncodeError` in Spec-Kit's startup banner. Banner crashes before any init logic runs without this.
+- Slash command names changed: dot-format (`/speckit.X`) → hyphen-format (`/speckit-X`).
+- Commands moved location: `.claude/commands/speckit.*.md` → `.claude/skills/`.
+- Spec-Kit now auto-`git init`s by default (this becomes opt-in via `specify extension add git` after v0.10.0).
+- Spec-Kit's startup output recommends adding parts of `.claude/` to `.gitignore` to prevent agent-credential leakage. Step 7 of init should surface this; see L1-spec-kit/README.md.
+
+### L1-superpowers
+
+```
+/plugin install superpowers@claude-plugins-official
+/plugin reload
+```
+
+These are **slash-command installs** — a skill body cannot programmatically invoke `/plugin install`. Step 8b surfaces these to the user with a "run this now" manual-step instruction. The user types the commands; we trust-but-verify by checking `~/.claude/plugins/.../superpowers/` afterward.
+
+### L2-musubi
+
+```
+npx musubi-sdd@latest init
+```
+
+Auto-confirms via `--yes` flag if MUSUBI supports it (verify on first refresh; currently treated as interactive — auto-pipe `y` if needed).
+
+### L2-openspec-brownfield
+
+```
+uvx shotgun plan "<user-provided short description>"
+openspec init
+```
+
+Step 8a prompts the user for the short description before invoking Shotgun.
+
+### L2-csdd-security (overlay)
+
+No install. Templates only — appends `constitution.append.md` content to `docs/constitution.md` after `L2-musubi`'s install creates the base constitution.
+
+### L3-watch (overlay)
+
+No install. Informational doc only — writes `docs/horizon/L3-WATCH.md`.
 
 ## Conflict handling
 

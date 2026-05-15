@@ -1,7 +1,7 @@
 {
   "name": "mck-scaffold",
   "description": "Interview-driven project scaffolder for Claude Code. Routes new projects to the right Spec-Driven Development methodology (Superpowers, Spec-Kit, MUSUBI, OpenSpec, or lean) based on Piskala's three-level rigor taxonomy and Wasowski's four decision contexts.",
-  "version": "0.1.0",
+  "version": "0.11.0",
   "author": {
     "name": "Matthew Kruczek",
     "email": "matthew.kruczek@ey.com"

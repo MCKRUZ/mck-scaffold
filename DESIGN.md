@@ -2,7 +2,7 @@
 
 > A Claude Code plugin that interviews you about a new (or existing) project, then scaffolds the right Spec-Driven Development methodology — Superpowers, Spec-Kit, MUSUBI, OpenSpec, or a lean baseline — by routing on Piskala's three-level rigor taxonomy and Wasowski's four decision contexts.
 
-**Status:** Phases 1–10 shipped 2026-05-15 — v0.10.0. mck-scaffold is feature-complete with marketplace manifest live. v1.0 ship is gated on the user executing `TEST_PLAN.md` against real projects and capturing audit-log findings. Decisions in §3 are locked. Defaults for §10 have been applied (see that section). Sections marked OPEN are still under discussion; everything else is built or scheduled.
+**Status:** Phases 1–12 shipped 2026-05-15 — v0.11.0. Auto-install enforcement + research-refresh pipeline both live. mck-scaffold is feature-complete with marketplace manifest live. v1.0 ship is gated on the user executing `TEST_PLAN.md` against real projects and capturing audit-log findings. Decisions in §3 are locked. Defaults for §10 have been applied (see that section). Sections marked OPEN are still under discussion; everything else is built or scheduled.
 
 ---
 
