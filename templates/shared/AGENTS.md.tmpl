@@ -1,0 +1,28 @@
+# Agent configuration
+
+> Cross-tool agent config for this project. Used by Codex, Cursor, Gemini CLI, GitHub Copilot, and any other tool that reads `AGENTS.md`.
+>
+> **For Claude Code, see [`CLAUDE.md`](./CLAUDE.md)** — it is the authoritative source of conventions. This file mirrors only what cross-tool agents need.
+
+## Project
+
+- **Name:** {{project_name}}
+- **Scaffolded:** {{scaffold_date}} via [mck-scaffold](https://github.com/MCKRUZ/mck-scaffold) v{{mck_scaffold_version}}
+- **Methodology:** `{{methodology_preset}}`{{methodology_overlays_suffix}}
+- **Stack:** {{stack_adapters_csv}}
+
+## Conventions (minimum cross-tool baseline)
+
+Tools that don't read `CLAUDE.md` should treat the following as the minimum required behavior:
+
+- **Plan before code.** For any non-trivial change, produce a plan and get user approval before implementing.
+- **One task per session.** Avoid long sessions that accumulate context.
+- **Tests before implementation** when the methodology dictates (see `CLAUDE.md` for whether TDD is mandatory, encouraged, or off for this project).
+- **Verify before claiming.** Read the code; don't pattern-match. Don't assert capability without evidence.
+
+For the full set of rules, see [`CLAUDE.md`](./CLAUDE.md). Where the two files conflict, `CLAUDE.md` wins.
+
+## Decision trail
+
+- [`docs/decisions/METHODOLOGY.md`](./docs/decisions/METHODOLOGY.md) — why this project is configured this way
+- [`docs/decisions/INTERVIEW.md`](./docs/decisions/INTERVIEW.md) — interview answers that produced this setup

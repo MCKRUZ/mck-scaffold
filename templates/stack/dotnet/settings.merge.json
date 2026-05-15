@@ -1,0 +1,13 @@
+{
+  "hooks": {
+    "PreToolUse": [],
+    "PostToolUse": []
+  },
+  "permissions": {
+    "allow": [
+      "Bash(dotnet:*)",
+      "Bash(nuget:*)"
+    ],
+    "deny": []
+  }
+}

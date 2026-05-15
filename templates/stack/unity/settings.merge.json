@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "PreToolUse": [],
+    "SessionStart": []
+  },
+  "permissions": {
+    "allow": [
+      "Bash(dotnet:*)"
+    ],
+    "deny": []
+  }
+}

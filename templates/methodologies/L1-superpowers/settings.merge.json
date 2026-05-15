@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "SessionStart": [],
+    "PreToolUse": []
+  },
+  "permissions": {
+    "allow": [],
+    "deny": []
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [],
+    "PostToolUse": []
+  },
+  "permissions": {
+    "allow": [
+      "Bash(ng:*)",
+      "Bash(npm:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npx ng:*)"
+    ],
+    "deny": []
+  }
+}

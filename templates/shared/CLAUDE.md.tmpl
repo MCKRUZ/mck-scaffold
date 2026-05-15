@@ -1,0 +1,33 @@
+# {{project_name}}
+
+> Scaffolded by [mck-scaffold](https://github.com/MCKRUZ/mck-scaffold) v{{mck_scaffold_version}} on {{scaffold_date}}.
+> See [`docs/decisions/METHODOLOGY.md`](./docs/decisions/METHODOLOGY.md) for why this setup was chosen.
+
+## Methodology
+
+This project uses **{{methodology_preset}}**. Overlays applied: {{methodology_overlays_or_none}}.
+
+{{methodology_specific_content}}
+
+## Stack
+
+Stack adapters in effect: {{stack_adapters_csv}}.
+
+{{stack_specific_content}}
+
+## Conventions
+
+- **Plan Mode first.** For any non-trivial change, press `Shift+Tab` twice to enter Plan Mode. Iterate the plan until it is right, *then* implement. This is the highest-leverage habit in agentic coding — cross-source consensus across Anthropic, every credible creator, and Reddit.
+- **One task per session.** Run `/clear` when context exceeds ~60%. Claude degrades silently as the session lengthens ("context rot").
+- **Press Escape early** when Claude drifts. Don't let it finish a wrong tangent.
+- **Hooks for deterministic rules; this file for advisory.** If a rule must apply every time, it lives in `.claude/settings.json`, not here.
+
+## Cross-tool compatibility
+
+This project has an [`AGENTS.md`](./AGENTS.md) for cross-tool agent compatibility (Codex, Cursor, Gemini CLI, Copilot). That file points back at this one as the authoritative source.
+
+## See also
+
+- [`AGENTS.md`](./AGENTS.md) — cross-tool agent configuration
+- [`docs/decisions/INTERVIEW.md`](./docs/decisions/INTERVIEW.md) — interview answers that produced this setup
+- [`docs/decisions/METHODOLOGY.md`](./docs/decisions/METHODOLOGY.md) — rationale, alternatives considered, scaffolded files

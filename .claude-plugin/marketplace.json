@@ -1,0 +1,34 @@
+{
+  "name": "mck-scaffold",
+  "owner": {
+    "name": "Matthew Kruczek",
+    "email": "matthew.kruczek@ey.com"
+  },
+  "metadata": {
+    "description": "Single-plugin marketplace for mck-scaffold. Install directly with: /plugin marketplace add github:MCKRUZ/mck-scaffold",
+    "version": "0.10.0"
+  },
+  "plugins": [
+    {
+      "name": "mck-scaffold",
+      "source": "./",
+      "description": "Interview-driven project scaffolder for Claude Code. Routes new projects to the right Spec-Driven Development methodology (Superpowers, Spec-Kit, MUSUBI, OpenSpec, or lean) based on Piskala's three-level rigor taxonomy and Wasowski's four decision contexts.",
+      "version": "0.10.0",
+      "author": {
+        "name": "Matthew Kruczek",
+        "email": "matthew.kruczek@ey.com"
+      },
+      "category": "development",
+      "keywords": [
+        "scaffolding",
+        "spec-driven-development",
+        "sdd",
+        "methodology",
+        "interview",
+        "agentic",
+        "piskala",
+        "wasowski"
+      ]
+    }
+  ]
+}
