@@ -2,19 +2,19 @@
 
 > Interview-driven project scaffolder for Claude Code. Picks the right Spec-Driven Development methodology for your project — instead of installing the most popular one.
 
-**Status:** v0.9.0 — functionally complete. v1.0 ships after [TEST_PLAN.md](./TEST_PLAN.md) dogfooding pass.
+**Status:** v0.11.0 — auto-install enforcement + research-refresh pipeline live. v1.0 ships after [TEST_PLAN.md](./TEST_PLAN.md) dogfood pass on additional scenarios beyond the first one (logged in `docs/audit-log.md`).
 
 ## What it does
 
-You run `/mck-scaffold:init` in a project folder. It walks you through an 8-question interview, routes your answers through Piskala's three-level rigor taxonomy and Wasowski's four decision contexts, picks the right methodology preset (Superpowers, Spec-Kit, MUSUBI, OpenSpec, or a lean baseline), then scaffolds your project:
+You run `/mck-scaffold:init` in a project folder. It:
 
-- `CLAUDE.md` — composed from shared base + methodology fragment + stack adapter
-- `AGENTS.md` — cross-tool agent baseline (Codex / Cursor / Gemini / Copilot)
-- `.claude/settings.json` — hook arrays + permissions per methodology and stack
-- `docs/decisions/INTERVIEW.md` + `METHODOLOGY.md` — durable record of why this setup was chosen
-- Triggers upstream framework installs as needed (`/plugin install superpowers@…`, `specify init`, `npx musubi-sdd@latest init`, `openspec init`, `uvx shotgun plan`)
+1. **(Step 0)** Reads `research/last-run.json` and offers to refresh the framework catalog if it's stale (skip-default if < 30 days, neutral 30–90, strongly-recommended-default > 90).
+2. **(Steps 1–6)** Walks you through an 8-question interview, applies Piskala's three-level rigor taxonomy + Wasowski's four decision contexts, routes deterministically to a methodology preset (Superpowers / Spec-Kit / MUSUBI / OpenSpec / lean), and shows a confirmable decision summary.
+3. **(Step 7)** Composes your project's `CLAUDE.md`, `AGENTS.md`, `.claude/settings.json`, and `docs/decisions/{INTERVIEW,METHODOLOGY}.md` from shared base + methodology fragment + stack adapter, with full conflict resolution on existing files.
+4. **(Step 8)** **Auto-runs** the upstream framework install (`specify init`, `npx musubi-sdd init`, `openspec init`, etc.) — not a manual step, the scaffolder does it.
+5. **(Step 9)** Prints a final summary including any post-install advisories the upstream tool surfaced (e.g., Spec-Kit's `.claude/` credentials-gitignore note).
 
-The interview is the product. The templates are commodity.
+The interview is the product. The templates are commodity. The research pipeline keeps both fresh.
 
 ## Why
 
@@ -22,24 +22,21 @@ The agentic-coding ecosystem (mid-2026) has 15+ SDD frameworks. Adoption is bimo
 
 mck-scaffold makes the routing decision once, with full visibility into the tradeoffs, and produces a coherent setup with a durable decision trail.
 
+**And** the framework catalog itself drifts fast. The first dogfood run (on consultant-helper, 2026-05-15) immediately surfaced Spec-Kit drift — less than 30 days after the source article published. The research-refresh pipeline catches this kind of drift before routing decisions get made against stale data.
+
 ## Quickstart
 
-**From GitHub (canonical):**
-
 ```
+# 1. Add the marketplace (one-time, host-wide)
 /plugin marketplace add github:MCKRUZ/mck-scaffold
+
+# 2. Install
 /plugin install mck-scaffold
 
+# 3. Use it
 cd /path/to/new-or-existing-project
 claude
 > /mck-scaffold:init
-```
-
-**From local checkout (for development on the plugin itself):**
-
-```
-/plugin marketplace add file:///C:/Users/RP325UG/OneDrive%20-%20EY/Documents/GitHub/MCKRUZ/mck-scaffold/
-/plugin install mck-scaffold
 ```
 
 For a *guidance-only* conversation (no file writes), describe what you want — the `methodology-picker` skill auto-triggers on phrases like "set up a new project," "pick a methodology," "what SDD framework should I use":
@@ -52,6 +49,12 @@ For a *dry run* of the scaffolder (interview only, no writes):
 
 ```
 > /mck-scaffold:init --dry-run
+```
+
+To manually refresh the framework catalog (between init runs):
+
+```
+> /mck-scaffold:refresh-research
 ```
 
 ## The interview, briefly
@@ -71,6 +74,19 @@ Eight questions. Smart pruning — brownfield skips Q3-Q4; non-security-critical
 
 Same answers always resolve to the same preset. Deterministic.
 
+## The research-refresh pipeline (new in v0.11.0)
+
+Before any interview question, Step 0 reads `research/last-run.json` and decides how to prompt about staleness. If you opt in, the `research-refresh` skill:
+
+1. Launches 4 parallel research subagents (GitHub / Reddit / YouTube / web-blogs)
+2. Each agent re-surveys its source for catalog drift (new frameworks, deprecated install commands, changed star counts, etc.)
+3. Pipeline diffs new findings against the current `research/streams/*.md` baseline
+4. Per-section confirm prompts let you apply changes selectively (no silent updates)
+5. Confirmed changes update `routing.md` + methodology preset templates + the stream files themselves
+6. `last-run.json` timestamp + `changelog.md` entry record the refresh
+
+The research store lives **in the repo** (`research/`) — a refresh is essentially a contribution to the plugin, benefiting all users on their next pull.
+
 ## Conceptual references
 
 - **Piskala 2026** ([arXiv:2602.00180](https://arxiv.org/abs/2602.00180)) — three-level SDD rigor taxonomy (L1 Spec-First / L2 Spec-Anchored / L3 Spec-as-Source)
@@ -82,32 +98,35 @@ Same answers always resolve to the same preset. Deterministic.
 
 ```
 mck-scaffold/
-├── .claude-plugin/plugin.json
+├── .claude-plugin/{plugin.json,marketplace.json}
 ├── README.md                       ← you are here
 ├── DESIGN.md                       ← full design and decisions
 ├── CHANGELOG.md                    ← phase-by-phase progress
 ├── TEST_PLAN.md                    ← dogfood procedure
+├── LICENSE                         ← MIT
 ├── skills/
 │   ├── init/SKILL.md               ← /mck-scaffold:init — interview + scaffold + install
-│   └── methodology-picker/SKILL.md ← conversational guidance (auto-trigger)
+│   ├── methodology-picker/SKILL.md ← conversational guidance (auto-trigger)
+│   └── research-refresh/SKILL.md   ← /mck-scaffold:refresh-research — catalog refresh
 ├── interview/
 │   ├── questions.md                ← Q1-Q8 tree
-│   └── routing.md                  ← answer-combination → preset
-└── templates/
-    ├── shared/                     ← base files (CLAUDE.md, AGENTS.md, settings, INTERVIEW.md, METHODOLOGY.md) + variable schema
-    ├── methodologies/
-    │   ├── L1-lean/                ← Plan Mode + lean CLAUDE.md
-    │   ├── L1-spec-kit/            ← GitHub Spec-Kit (90k★)
-    │   ├── L1-superpowers/         ← obra Superpowers (~166k★)
-    │   ├── L2-musubi/              ← MUSUBI EARS + traceability
-    │   ├── L2-openspec-brownfield/ ← OpenSpec delta-specs
-    │   ├── L2-csdd-security/       ← CSDD overlay (SEC-001..SEC-007)
-    │   └── L3-watch/               ← informational; "watch, don't deploy"
-    └── stack/
-        ├── dotnet/                 ← .NET 8/9 conventions + permissions
-        ├── angular/                ← Angular 18+ + Playwright + permissions
-        ├── unity/                  ← Unity 6 / 2023 LTS + Play Mode testing
-        └── python/                 ← Python 3.12+ + uv + ruff + pytest
+│   └── routing.md                  ← answer-combination → preset (with platform-aware install commands)
+├── research/                       ← shared catalog state
+│   ├── README.md                   ← what's here + how a refresh works
+│   ├── last-run.json               ← timestamp + summary
+│   ├── findings.md                 ← consolidated narrative
+│   ├── changelog.md                ← deltas over time
+│   └── streams/{github-landscape,reddit-signal,youtube-tutorials,web-blogs}.md
+├── templates/
+│   ├── shared/                     ← base CLAUDE.md / AGENTS.md / settings / decision docs + variable schema
+│   ├── methodologies/
+│   │   ├── L1-{lean,spec-kit,superpowers}/
+│   │   ├── L2-{musubi,openspec-brownfield,csdd-security}/
+│   │   └── L3-watch/               ← informational only
+│   └── stack/{dotnet,angular,unity,python}/
+└── docs/
+    ├── README.md
+    └── audit-log.md                ← real-world dogfood findings
 ```
 
 ## Out of scope (v1)
@@ -121,16 +140,16 @@ mck-scaffold/
 
 ## Roadmap
 
-- **v1.0** — dogfood pass complete (see [TEST_PLAN.md](./TEST_PLAN.md)), known issues triaged, marketplace listing live
-- **v1.1** — Phase 7.1: real hook content per stack/methodology (currently empty arrays); version pinning for upstream installs
-- **v2** — BMAD preset, additional frontend frameworks if demand emerges, optional automated CI tests for the scaffolder itself
+- **v1.0** — broader TEST_PLAN dogfood (Wasowski contexts B/C/D), known issues triaged
+- **v1.1 / Phase 7.1** — real hook content per stack/methodology (currently empty arrays); upstream-version pinning
+- **v1.1 / Phase 12.1** — machine-parseable research-refresh diff format so `--auto-apply` can actually patch templates
+- **v1.2 / Phase 13** — scheduled background research-refresh (monthly cadence default) via a hook
+- **v2** — BMAD preset; additional frontend frameworks if demand emerges; optional automated CI tests for the scaffolder itself
 
 ## License
 
-MIT. See [LICENSE](./LICENSE) (TBD — to be added in v1.0 marketplace prep).
+MIT. See [LICENSE](./LICENSE).
 
 ## Contributing
 
-Personal project at v0.9.0. Not yet public. Once v1.0 ships and the marketplace listing is live, contribution guidelines will land here.
-
-In the meantime, if you're reading this and want to suggest a methodology or stack adapter: open an issue describing the project context that *isn't* served by the current routing, with a concrete example. New presets land when there's a real project they'd serve, not speculatively.
+Personal project at v0.11.0. Not yet broadly public. The shared-repo research-refresh design means any user running a refresh is contributing to the catalog — open a PR with the refreshed `research/streams/` files + the updated `routing.md` and preset templates.
